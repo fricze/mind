@@ -15,4 +15,9 @@
 (re-frame/register-sub
  :thoughts
  (fn [db]
-   (reaction (:thoughts @db))))
+   (let [search-query (reaction (:search-query @db))]
+     (reaction (filter
+                #(re-find (js.RegExp. (str @search-query))
+                          (str (:title %)))
+                (:thoughts @db))))))
+

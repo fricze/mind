@@ -12,10 +12,31 @@
  (fn [db [_ active-panel]]
    (assoc db :active-panel active-panel)))
 
+(defn add-thought [db [_ thought]]
+  (if (empty? thought)
+    db
+    (let [new-id (:thought-id db)]
+      (assoc db
+             :thoughts (conj (:thoughts db)
+                             {:title thought
+                              :content ""
+                              :id new-id})
+
+             :thought-id (inc new-id)))))
+
 (re-frame/register-handler
  :add-thought
- (fn [db [_ thought]]
-   (let [new-id (:thought-id db)]
-     (assoc db
-            :thoughts (conj (:thoughts db) {:content thought :id new-id})
-            :thought-id (inc new-id)))))
+ add-thought)
+
+(defn remove-thought [db [_ id]]
+  (assoc db
+         :thoughts (remove #(= id (:id %)) (:thoughts db))))
+
+(re-frame/register-handler
+ :remove-thought
+ remove-thought)
+
+(re-frame/register-handler
+ :search-query-change
+ (fn [db [_ search-query]]
+   (assoc db :search-query search-query)))
