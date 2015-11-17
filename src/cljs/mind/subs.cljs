@@ -16,8 +16,10 @@
  :thoughts
  (fn [db]
    (let [search-query (reaction (:search-query @db))]
-     (reaction (filter
-                #(re-find (js.RegExp. (str @search-query))
-                          (str (:title %)))
-                (:thoughts @db))))))
+     (reaction (->>
+                (:thoughts @db)
+                (filter
+                 #(re-find (js.RegExp. (str @search-query))
+                           (str (:title %))))
+                (sort-by :id))))))
 

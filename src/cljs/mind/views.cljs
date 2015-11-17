@@ -1,8 +1,13 @@
 (ns mind.views
   (:require [re-frame.core :as re-frame]
-            [reagent.core :as reagent :refer [atom]]))
+            [reagent.core :as reagent :refer [atom]]
+            [cljsjs.react-motion]))
 
 (enable-console-print!)
+
+(def Motion (reagent/adapt-react-class js/ReactMotion.Motion))
+(def StaggeredMotion (reagent/adapt-react-class js/ReactMotion.StaggeredMotion))
+(def TransitionMotion (reagent/adapt-react-class js/ReactMotion.TransitionMotion))
 
 ;; --------------------
 (def input-style
@@ -57,15 +62,13 @@
                 :padding-bottom "5px"
                 :padding-top "10px"
                 :margin-top "10px"
-                :cursor "pointer"
+                :cursor :pointer
                 :width "25vw"}}
        [:div
         {:style {:position :static
                  :display :flex
                  :flex-direction :reverse
-                 :justify-content :space-between}
-         :on-mouse-enter #(reset! show-content true)
-         :on-mouse-leave #(reset! show-content false)}
+                 :justify-content :space-between}}
 
         [:div
          {:on-click #(re-frame.core/dispatch
@@ -74,7 +77,7 @@
                   :font-variant :small-caps
                   :cursor :pointer
                   :order 2
-                  :margin-right 5
+                  :margin-right 15
                   :flex "0 1 auto"}}
          "connect"]
 
@@ -92,7 +95,9 @@
          {:style {:flex "2 1 auto"
                   :order 1
                   :position :relative
-                  :display :block}}
+                  :display :block}
+          :on-mouse-enter #(reset! show-content true)
+          :on-mouse-leave #(reset! show-content false)}
          [:span
           {:style {:position :absolute
                    :left -25}}
