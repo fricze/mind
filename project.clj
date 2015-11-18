@@ -18,12 +18,6 @@
                                     "test/js"
                                     "resources/public/css/compiled"]
 
-  :garden {:builds [{:id "screen"
-                     :source-paths ["src/clj"]
-                     :stylesheet mind.css/screen
-                     :compiler {:output-to "resources/public/css/compiled/screen.css"
-                                :pretty-print? true}}]}
-
   :cljsbuild {:builds [{:id "dev"
                         :source-paths ["src/cljs"]
 

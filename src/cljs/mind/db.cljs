@@ -5,7 +5,6 @@
   {:name "re-frame"
 
    :thoughts [{:title "first one"
-               :id 0
-               :content "some basic content"}]
+               :id 0}]
 
    :thought-id 1})

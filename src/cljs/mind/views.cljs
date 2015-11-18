@@ -1,13 +1,12 @@
 (ns mind.views
   (:require [re-frame.core :as re-frame]
             [reagent.core :as reagent :refer [atom]]
-            [cljsjs.react-motion]))
+            [mind.motion :as motion]))
 
 (enable-console-print!)
 
-(def Motion (reagent/adapt-react-class js/ReactMotion.Motion))
-(def StaggeredMotion (reagent/adapt-react-class js/ReactMotion.StaggeredMotion))
-(def TransitionMotion (reagent/adapt-react-class js/ReactMotion.TransitionMotion))
+(defn debugger []
+  (js/eval "debugger"))
 
 ;; --------------------
 (def input-style
@@ -54,7 +53,7 @@
                  :height "24px"}}
         "create"]])))
 
-(defn thought-component [thought]
+(defn thought-component [thought height]
   (let [show-content (atom false)]
     (fn []
       [:div
@@ -63,6 +62,8 @@
                 :padding-top "10px"
                 :margin-top "10px"
                 :cursor :pointer
+                :overflow :hidden
+                :height (* height 3.4)
                 :width "25vw"}}
        [:div
         {:style {:position :static
@@ -115,10 +116,26 @@
             multiline? yeah, why not!"])]])))
 
 (defn thoughts-list-component [thoughts]
-  (for [th thoughts]
-    ^{:key (:id th)}
-    [:div
-     [thought-component th]]))
+  [motion/transition-motion
+   #_{:defaultStyle {:x 0}
+    :style {:x (motion/spring 10)}}
+   {:defaultStyles {:x 5}
+    :styles {:x (motion/spring 40)}
+    :willLeave (fn [key style]
+                 (debugger)
+                 {:x (motion/spring 20)})
+    :willEnter (fn [key]
+                 (debugger)
+                 {:x (motion/spring 10)})}
+
+   (fn [configs]
+     (let [height (.-x configs)]
+       (println configs)
+       (reagent/create-element
+        (reagent/reactify-component
+         (fn [] [:div (for [th thoughts]
+                        ^{:key (:id th)}
+                        [thought-component th height])])))))])
 
 (defn home-panel []
   (let [name (re-frame/subscribe [:name])

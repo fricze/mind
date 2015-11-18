@@ -13,6 +13,11 @@
    (reaction (:active-panel @db))))
 
 (re-frame/register-sub
+ :search-query
+ (fn [db _]
+   (reaction (:search-query @db))))
+
+(re-frame/register-sub
  :thoughts
  (fn [db]
    (let [search-query (reaction (:search-query @db))]

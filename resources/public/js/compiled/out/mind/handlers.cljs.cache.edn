@@ -1,2 +1,0 @@
-;; Analyzed by ClojureScript 0.0-3211
-{:use-macros nil, :excludes #{}, :name mind.handlers, :imports nil, :requires {db mind.db, mind.db mind.db, re-frame.core re-frame.core, re-frame re-frame.core}, :uses nil, :require-macros nil, :cljs.analyzer/constants {:order [:initialize-db :set-active-panel :active-panel :add-thought :thoughts :thought-id :content :id], :seen #{:initialize-db :thought-id :content :thoughts :set-active-panel :id :add-thought :active-panel}}, :doc nil}

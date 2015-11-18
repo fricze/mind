@@ -6,6 +6,8 @@
             [mind.routes :as routes]
             [mind.views :as views]))
 
+(enable-console-print!)
+
 (defn mount-root []
   (reagent/render [views/main-panel]
                   (.getElementById js/document "app")))

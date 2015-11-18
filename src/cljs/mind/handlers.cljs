@@ -36,6 +36,7 @@
 (re-frame/register-handler
  :search-query-change
  (fn [db [_ search-query]]
+   (println search-query)
    (assoc db :search-query search-query)))
 
 (re-frame/register-handler
