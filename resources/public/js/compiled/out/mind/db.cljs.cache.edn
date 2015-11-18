@@ -1,2 +1,0 @@
-;; Analyzed by ClojureScript 0.0-3211
-{:use-macros nil, :excludes #{}, :name mind.db, :imports nil, :requires {reagent.core reagent.core, reagent reagent.core}, :uses nil, :defs {default-db {:meta {:end-column 16, :end-line 5, :column 6, :line 5, :file "/home/fricze/Work/mind/src/cljs/mind/db.cljs"}, :file "src/cljs/mind/db.cljs", :line 5, :column 1, :end-line 5, :end-column 16, :test true, :name mind.db/default-db}}, :require-macros nil, :cljs.analyzer/constants {:order [:name :thoughts :thought-id :content :id], :seen #{:thought-id :content :name :thoughts :id}}, :doc nil}
