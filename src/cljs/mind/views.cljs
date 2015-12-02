@@ -1,7 +1,8 @@
 (ns mind.views
   (:require [re-frame.core :as re-frame]
             [reagent.core :as reagent :refer [atom]]
-            [mind.motion :as motion]))
+            [mind.motion :as motion]
+            [mind.layout :as layout]))
 
 (enable-console-print!)
 
@@ -9,16 +10,6 @@
   (js/eval "debugger"))
 
 ;; --------------------
-(def input-style
-  {:outline :none
-   :border-right "1px solid #fff"
-   :border-bottom "2px solid black"
-   :border-top "2px solid #fff"
-   :border-left "2px solid #fff"
-   :box-sizing :border-box
-   :padding "5px"
-   :height "26px"})
-
 (defn new-thought-component []
   (let [val (atom "new thought")
         submit-button-focus (atom false)
@@ -37,82 +28,81 @@
                 :on-change #(reset! val (-> % .-target .-value))
                 :on-focus #(reset! thought-input-focus true)
                 :on-blur #(reset! thought-input-focus false)
-                :style input-style}]
+                :style layout/input-style}]
 
        [:button
         {:type :submit
          :on-focus #(reset! submit-button-focus true)
          :on-blur #(reset! submit-button-focus false)
-         :style {:outline (if @submit-button-focus "1px solid #333" "1px solid #ddd")
-                 :border :none
-                 :background-color "#ddd"
-                 :color "#333"
-                 :text-shadow "1px 1px 1px #fff"
-                 :margin-left "20px"
-                 :box-sizing :border-box
-                 :height "24px"}}
+         :style (layout/button-style @submit-button-focus)}
         "create"]])))
 
-(defn thought-component [thought height]
-  (let [show-content (atom false)]
+(defn thought-component [thought layout active-thought]
+  (let [show-content (atom false)
+        is-active (= (:id thought) active-thought)]
+
     (fn []
       [:div
-       {:style {:border-bottom "1px solid black"
-                :padding-bottom "5px"
-                :padding-top "10px"
-                :margin-top "10px"
-                :cursor :pointer
-                :overflow :hidden
-                :height (* height 3.4)
-                :width "25vw"}}
+       {:style (layout/thought-style is-active)}
+
        [:div
-        {:style {:position :static
+        {:style {:position :absolute
+                 :top (:top layout)
                  :display :flex
                  :flex-direction :reverse
-                 :justify-content :space-between}}
+                 :transition "500ms top ease-in-out"
+                 :flex-wrap :wrap
+                 :justify-content :flex-start}}
 
         [:div
          {:on-click #(re-frame.core/dispatch
-                      [:connect-thought (:id thought)])
+                      [:activate-thought (:id thought)])
           :style {:-webkit-user-select :none
                   :font-variant :small-caps
                   :cursor :pointer
                   :order 2
                   :margin-right 15
                   :flex "0 1 auto"}}
-         "connect"]
+         "focus"]
+
+        (when-not is-active [:div
+                             {:on-click #(re-frame.core/dispatch
+                                          [:connect-thought (:id thought)])
+                              :style {:-webkit-user-select :none
+                                      :font-variant :small-caps
+                                      :cursor :pointer
+                                      :order 2
+                                      :flex "0 1 auto"}}
+                             "connect"])
+
+        (when is-active [:div
+                         {:on-click #(re-frame.core/dispatch
+                                      [:remove-thought (:id thought)])
+                          :style {:-webkit-user-select :none
+                                  :font-variant :small-caps
+                                  :cursor :pointer
+                                  :order 2
+                                  :flex "0 1 auto"}}
+                         "remove"])
 
         [:div
-         {:on-click #(re-frame.core/dispatch
-                      [:remove-thought (:id thought)])
-          :style {:-webkit-user-select :none
-                  :font-variant :small-caps
-                  :cursor :pointer
-                  :order 2
-                  :flex "0 1 auto"}}
-         "remove"]
-
-        [:div
-         {:style {:flex "2 1 auto"
+         {:style {:flex "0 1 auto"
                   :order 1
                   :position :relative
-                  :display :block}
+                  :margin-right 15
+                  :display :inline-block}
           :on-mouse-enter #(reset! show-content true)
           :on-mouse-leave #(reset! show-content false)}
-         [:span
-          {:style {:position :absolute
-                   :left -25}}
-          (str "{" (:id thought) "}")]
 
          [:span (str (:title thought))]]
 
-        (when @show-content
-          [:div
-           {:style {:position :absolute
-                    :top "14vw"
-                    :width "20vw"
-                    :right "20vw"}}
-           "Lorem ipsum dolor sit amet, and more freaky content
+        (when #_@show-content false
+              [:div
+               {:style {:flex "3 1 auto"
+                        :order 2
+                        :cursor :text
+                        :margin-top 10}}
+               "Lorem ipsum dolor sit amet, and more freaky content
             multiline? yeah, why not!"])]])))
 
 (defn thoughts-list-component [thoughts]
@@ -122,38 +112,48 @@
    {:defaultStyles {:x 5}
     :styles {:x (motion/spring 40)}
     :willLeave (fn [key style]
-                 (debugger)
                  {:x (motion/spring 20)})
     :willEnter (fn [key]
-                 (debugger)
                  {:x (motion/spring 10)})}
 
    (fn [configs]
-     (let [height (.-x configs)]
-       (println configs)
+     (let [active-thought (re-frame/subscribe [:active-thought])
+           active-thought @active-thought
+           thoughts-number (count thoughts)
+           current-layout (layout/thoughts thoughts-number active-thought)]
+
        (reagent/create-element
         (reagent/reactify-component
-         (fn [] [:div (for [th thoughts]
-                        ^{:key (:id th)}
-                        [thought-component th height])])))))])
+         (fn [] [:div
+                 {:style {:display :inline-block
+                          :top 20
+                          :position :relative}}
+                 (for [i (range thoughts-number)]
+                   (let [thought (nth thoughts i)]
+                     ^{:key (:title thought)}
+                     [thought-component thought
+                      (nth current-layout i) active-thought]))])))))])
 
 (defn home-panel []
   (let [name (re-frame/subscribe [:name])
         thoughts (re-frame/subscribe [:thoughts])
         search-query (atom "")]
-
     (fn []
       [:div
        {:style {:font-family :sans-serif
                 :width "500px"
                 :margin-left "30%"
                 :margin-top "5vw"}}
-       #_(str "Hello. This is your mind.")
        [:form
         [:label
-         [:p "search through your mind"]
+         [:p
+          {:style {:display :inline-block
+                   :margin-right 5
+                   :position :relative
+                   :top 2}}
+          "search through your mind"]
          [:input {:type :text
-                  :style input-style
+                  :style layout/input-style
                   :on-change (fn [e]
                                (reset! search-query (-> e .-target .-value))
                                (re-frame.core/dispatch

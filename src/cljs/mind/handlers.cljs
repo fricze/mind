@@ -36,7 +36,6 @@
 (re-frame/register-handler
  :search-query-change
  (fn [db [_ search-query]]
-   (println search-query)
    (assoc db :search-query search-query)))
 
 (re-frame/register-handler
@@ -46,3 +45,19 @@
 (re-frame/register-handler
  :add-thought
  add-thought)
+
+(re-frame/register-handler
+ :activate-thought
+ (fn [db [_ thought-id]]
+   (assoc db :active-thought thought-id)))
+
+(re-frame/register-handler
+ :deactivate-thought
+ (fn [db [_ thought-id]]
+   (assoc db :active-thought -1)))
+
+(re-frame/register-handler
+ :connect-thought
+ (fn [db [_ thought-id]]
+   db
+   #_(assoc db :active-thought thought-id)))

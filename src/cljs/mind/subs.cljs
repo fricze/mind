@@ -2,6 +2,9 @@
   (:require-macros [reagent.ratom :refer [reaction]])
   (:require [re-frame.core :as re-frame]))
 
+(defn string-contains [string search-string]
+  (not= -1 (.indexOf string search-string)))
+
 (re-frame/register-sub
  :name
  (fn [db]
@@ -24,7 +27,11 @@
      (reaction (->>
                 (:thoughts @db)
                 (filter
-                 #(re-find (js.RegExp. (str @search-query))
-                           (str (:title %))))
+                 #(string-contains (str (:title %))
+                                   (str @search-query)))
                 (sort-by :id))))))
 
+(re-frame/register-sub
+ :active-thought
+ (fn [db _]
+   (reaction (:active-thought @db))))
