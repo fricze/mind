@@ -33,13 +33,16 @@
    :overflow :hidden
    :width "25vw"})
 
-(defn _thoughts [quantity active-id]
+(defn _thoughts [elements active-id]
   (let [pos 40]
-    (for [id (range quantity)]
-      (let [current-pos (* id pos)]
-        {:top (cond
-                (= id active-id) 0
-                (< id active-id) (+ pos current-pos)
-                :else current-pos)}))))
+    (for [id (range (count elements))]
+      (let [current-pos (* id pos)
+            element (nth elements id)
+            el-id (:id element)]
+        {:data element
+         :layout {:top (cond
+                         (= el-id active-id) 0
+                         (< el-id active-id) (+ pos current-pos)
+                         :else current-pos)}}))))
 
 (def thoughts (memoize _thoughts))

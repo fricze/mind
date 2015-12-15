@@ -37,107 +37,109 @@
          :style (layout/button-style @submit-button-focus)}
         "create"]])))
 
-(defn thought-component [thought layout active-thought]
+(defn thought-component [{thought :data layout :layout}
+                         active-thought
+                         connections]
   (let [show-content (atom false)
-        is-active (= (:id thought) active-thought)]
+        is-active (= (:id thought) active-thought)
+        is-connected-with-active
+        (seq (filter #{#{(:id thought) active-thought}} connections))]
 
-    (fn []
+    [:div
+     {:style (layout/thought-style is-active)}
+
+     [:div
+      {:style {:position :absolute
+               :top (:top layout)
+               :display :flex
+               :flex-direction :reverse
+               :transition "500ms top ease-in-out"
+               :flex-wrap :wrap
+               :justify-content :flex-start}}
+
       [:div
-       {:style (layout/thought-style is-active)}
+       {:on-click #(re-frame.core/dispatch
+                    [:activate-thought (:id thought)])
+        :style {:-webkit-user-select :none
+                :font-variant :small-caps
+                :cursor :pointer
+                :order 2
+                :margin-right 15
+                :flex "0 1 auto"}}
+       "focus"]
 
-       [:div
-        {:style {:position :absolute
-                 :top (:top layout)
-                 :display :flex
-                 :flex-direction :reverse
-                 :transition "500ms top ease-in-out"
-                 :flex-wrap :wrap
-                 :justify-content :flex-start}}
+      (when-not is-active [:div
+                           {:on-click #(re-frame.core/dispatch
+                                        [:connect-thought
+                                         (:id thought)
+                                         active-thought])
+                            :style {:-webkit-user-select :none
+                                    :font-variant :small-caps
+                                    :cursor :pointer
+                                    :order 2
+                                    :flex "0 1 auto"
+                                    :font-weight (if is-connected-with-active
+                                                   700
+                                                   400)}}
+                           "connect"])
 
-        [:div
-         {:on-click #(re-frame.core/dispatch
-                      [:activate-thought (:id thought)])
-          :style {:-webkit-user-select :none
-                  :font-variant :small-caps
-                  :cursor :pointer
-                  :order 2
-                  :margin-right 15
-                  :flex "0 1 auto"}}
-         "focus"]
+      (when is-active [:div
+                       {:on-click #(re-frame.core/dispatch
+                                    [:remove-thought (:id thought)])
+                        :style {:-webkit-user-select :none
+                                :font-variant :small-caps
+                                :cursor :pointer
+                                :order 2
+                                :flex "0 1 auto"}}
+                       "remove"])
 
-        (when-not is-active [:div
-                             {:on-click #(re-frame.core/dispatch
-                                          [:connect-thought (:id thought)])
-                              :style {:-webkit-user-select :none
-                                      :font-variant :small-caps
-                                      :cursor :pointer
-                                      :order 2
-                                      :flex "0 1 auto"}}
-                             "connect"])
+      [:div
+       {:style {:flex "0 1 auto"
+                :order 1
+                :position :relative
+                :margin-right 15
+                :display :inline-block}
+        :on-mouse-enter #(reset! show-content true)
+        :on-mouse-leave #(reset! show-content false)}
 
-        (when is-active [:div
-                         {:on-click #(re-frame.core/dispatch
-                                      [:remove-thought (:id thought)])
-                          :style {:-webkit-user-select :none
-                                  :font-variant :small-caps
-                                  :cursor :pointer
-                                  :order 2
-                                  :flex "0 1 auto"}}
-                         "remove"])
+       [:span (str (:title thought))]]
 
-        [:div
-         {:style {:flex "0 1 auto"
-                  :order 1
-                  :position :relative
-                  :margin-right 15
-                  :display :inline-block}
-          :on-mouse-enter #(reset! show-content true)
-          :on-mouse-leave #(reset! show-content false)}
-
-         [:span (str (:title thought))]]
-
-        (when #_@show-content false
-              [:div
-               {:style {:flex "3 1 auto"
-                        :order 2
-                        :cursor :text
-                        :margin-top 10}}
-               "Lorem ipsum dolor sit amet, and more freaky content
-            multiline? yeah, why not!"])]])))
+      (when #_@show-content false
+            [:div
+             {:style {:flex "3 1 auto"
+                      :order 2
+                      :cursor :text
+                      :margin-top 10}}
+             "Lorem ipsum dolor sit amet, and more freaky content
+            multiline? yeah, why not!"])]]))
 
 (defn thoughts-list-component [thoughts]
-  [motion/transition-motion
-   #_{:defaultStyle {:x 0}
-    :style {:x (motion/spring 10)}}
-   {:defaultStyles {:x 5}
-    :styles {:x (motion/spring 40)}
-    :willLeave (fn [key style]
-                 {:x (motion/spring 20)})
-    :willEnter (fn [key]
-                 {:x (motion/spring 10)})}
+  (let [thoughts (doall @thoughts)
+        active-thought (re-frame/subscribe [:active-thought])
+        active-thought @active-thought
+        connections (re-frame/subscribe [:connections])
+        connections @connections
+        active-shown (seq (filter #(= (:id %) active-thought) thoughts))
+        thoughts-number (count thoughts)
+        current-layout (layout/thoughts thoughts (if active-shown
+                                                   active-thought
+                                                   -1))]
 
-   (fn [configs]
-     (let [active-thought (re-frame/subscribe [:active-thought])
-           active-thought @active-thought
-           thoughts-number (count thoughts)
-           current-layout (layout/thoughts thoughts-number active-thought)]
+    [:div
+     {:style {:display :inline-block
+              :top 20
+              :position :relative}}
 
-       (reagent/create-element
-        (reagent/reactify-component
-         (fn [] [:div
-                 {:style {:display :inline-block
-                          :top 20
-                          :position :relative}}
-                 (for [i (range thoughts-number)]
-                   (let [thought (nth thoughts i)]
-                     ^{:key (:title thought)}
-                     [thought-component thought
-                      (nth current-layout i) active-thought]))])))))])
+     (map (fn [component]
+            ^{:key (:title (:data component))}
+            [thought-component component active-thought connections])
+          current-layout)]))
 
 (defn home-panel []
   (let [name (re-frame/subscribe [:name])
         thoughts (re-frame/subscribe [:thoughts])
         search-query (atom "")]
+
     (fn []
       [:div
        {:style {:font-family :sans-serif
@@ -160,33 +162,18 @@
                                 [:search-query-change @search-query]))}]]]
 
        [new-thought-component]
-       (thoughts-list-component (doall @thoughts))])))
 
-(defn about-panel []
-  (fn []
-    [:div
-     "This is the About Page."
-     [:div [:a {:href "#/"} "go to Home Page"]]]))
+       [thoughts-list-component thoughts]])))
 
 ;; --------------------
 
 (defmulti panels identity)
 
 (defmethod panels :home-panel [] [home-panel])
-(defmethod panels :about-panel [] [about-panel])
 (defmethod panels :default [] [:div])
 
 (defn main-panel []
-  (let [active-panel (re-frame/subscribe [:active-panel])]
+  (home-panel)
+  #_(let [active-panel (re-frame/subscribe [:active-panel])]
     (fn []
       (panels @active-panel))))
-
-(defn lister [items]
-  [:ul
-   (for [item items]
-     ^{:key item} [:li "Item " item])])
-
-(defn lister-user []
-  [:div
-   "Here is a list:"
-   [lister (range 3)]])

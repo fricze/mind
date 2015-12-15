@@ -23,15 +23,25 @@
 (re-frame/register-sub
  :thoughts
  (fn [db]
-   (let [search-query (reaction (:search-query @db))]
-     (reaction (->>
-                (:thoughts @db)
-                (filter
-                 #(string-contains (str (:title %))
-                                   (str @search-query)))
-                (sort-by :id))))))
+   (let [search-query (reaction (:search-query @db))
+         active-thought (reaction (:active-thought @db))]
+     (reaction
+      (->>
+       (:thoughts @db)
+       (filter
+        (fn [thought]
+          (or
+           (= @active-thought (:id thought))
+           (string-contains (str (:title thought))
+                            (str @search-query)))))
+       (sort-by :id))))))
 
 (re-frame/register-sub
  :active-thought
  (fn [db _]
    (reaction (:active-thought @db))))
+
+(re-frame/register-sub
+ :connections
+ (fn [db _]
+   (reaction (:connections @db))))

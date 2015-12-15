@@ -1,6 +1,6 @@
 (defproject mind "0.1.0-SNAPSHOT"
-  :dependencies [[org.clojure/clojure "1.6.0"]
-                 [org.clojure/clojurescript "0.0-3211"]
+  :dependencies [[org.clojure/clojure "1.7.0"]
+                 [org.clojure/clojurescript "1.7.170"]
                  [reagent "0.5.1" :exclusions [cljsjs/react]]
                  [cljsjs/react-with-addons "0.14.0-0"]
                  [cljsjs/react-motion "0.3.0-0"]
@@ -10,9 +10,8 @@
 
   :source-paths ["src/clj"]
 
-  :plugins [[lein-cljsbuild "1.0.6"]
-            [lein-figwheel "0.3.3" :exclusions [cider/cider-nrepl]]
-            [lein-garden "0.2.6"]]
+  :plugins [[lein-cljsbuild "1.1.1"]
+            [lein-figwheel "0.5.0-1"]]
 
   :clean-targets ^{:protect false} ["resources/public/js/compiled" "target"
                                     "test/js"
@@ -21,16 +20,13 @@
   :cljsbuild {:builds [{:id "dev"
                         :source-paths ["src/cljs"]
 
-                        :figwheel {:on-jsload "mind.core/mount-root"
+                        :figwheel {:on-jsload "mind.core/init"
                                    :nrepl-port 7888}
 
                         :compiler {:main mind.core
                                    :output-to "resources/public/js/compiled/app.js"
                                    :output-dir "resources/public/js/compiled/out"
                                    :asset-path "js/compiled/out"
-                                   :externs ["react_measure.js"]
-                                   :foreign-libs [{:file "react_measure.js"
-                                                   :provides ["react-measure.core"]}]
                                    :source-map-timestamp true}}
 
                        {:id "test"

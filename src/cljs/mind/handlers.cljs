@@ -19,8 +19,10 @@
                :thought-id (inc new-id))))))
 
 (defn remove-thought [db [_ id]]
-  (assoc db
-         :thoughts (remove #(= id (:id %)) (:thoughts db))))
+  (let [is-active (= id (:active-thought db))]
+    (assoc db
+           :thoughts (remove #(= id (:id %)) (:thoughts db))
+           :active-thought (if is-active -1 (:active-thought db)))))
 
 
 (re-frame/register-handler
@@ -58,6 +60,7 @@
 
 (re-frame/register-handler
  :connect-thought
- (fn [db [_ thought-id]]
-   db
-   #_(assoc db :active-thought thought-id)))
+ (fn [db [_ fst-id scnd-id]]
+   (let [connections (:connections db)]
+     (assoc db :connections (conj connections
+                                  #{fst-id scnd-id})))))

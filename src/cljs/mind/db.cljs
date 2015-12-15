@@ -7,4 +7,6 @@
    :thoughts [{:title "first one"
                :id 0}]
 
-   :thought-id 1})
+   :thought-id 1
+
+   :connections #{}})

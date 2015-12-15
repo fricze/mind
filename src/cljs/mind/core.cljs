@@ -10,9 +10,11 @@
 
 (defn mount-root []
   (reagent/render [views/main-panel]
-                  (.getElementById js/document "app")))
+                  (.getElementById js/document "mind")))
 
 (defn ^:export init []
-  (routes/app-routes)
+  (println "initłem")
+  ;; (routes/app-routes)
   (re-frame.core/dispatch-sync [:initialize-db])
   (mount-root))
+
